@@ -12,7 +12,9 @@ const {
   getFavorites,
   getTrendingNews,
   getRelatedNews,
-  getCategories
+  getCategories,
+  getLatestNews,
+  getPopularNews
 } = require('../controllers/userNewsController');
 
 const {
@@ -23,6 +25,10 @@ const {
 // Public routes
 router.get('/categories', getCategories);
 router.get('/featured', getFeaturedNews);
+
+router.get('/latest', getLatestNews);
+router.get('/popular', getPopularNews)
+
 router.get('/trending', getTrendingNews);
 router.get('/category/:category', getNewsByCategory);
 router.get('/:id/related', getRelatedNews);

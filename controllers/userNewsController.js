@@ -58,9 +58,9 @@ exports.getPublishedNews = async (req, res) => {
 // @access  Public
 exports.getNewsBySlug = async (req, res) => {
   try {
-    const news = await News.findOne({ 
-      slug: req.params.slug, 
-      status: 'published' 
+    const news = await News.findOne({
+      slug: req.params.slug,
+      status: 'published'
     }).populate('author', 'name avatar');
 
     if (!news) {
@@ -77,7 +77,7 @@ exports.getNewsBySlug = async (req, res) => {
     // Check if user has liked this article
     let isLiked = false;
     let isFavorited = false;
-    
+
     if (req.user) {
       isLiked = news.likes.includes(req.user._id);
       const user = await User.findById(req.user._id);
@@ -107,9 +107,9 @@ exports.getFeaturedNews = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit, 10) || 5;
 
-    const news = await News.find({ 
-      status: 'published', 
-      isFeatured: true 
+    const news = await News.find({
+      status: 'published',
+      isFeatured: true
     })
       .populate('author', 'name avatar')
       .select('-content')
@@ -138,9 +138,9 @@ exports.getNewsByCategory = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const query = { 
-      status: 'published', 
-      category: req.params.category 
+    const query = {
+      status: 'published',
+      category: req.params.category
     };
 
     const total = await News.countDocuments(query);
@@ -381,6 +381,102 @@ exports.getCategories = async (req, res) => {
       success: true,
       data: categories
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+
+// @desc    Get latest published news
+// @route   GET /api/news/latest
+// @access  Public
+
+exports.getLatestNews = async (req, res) => {
+
+  console.log("Dfsd")
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit, 10) || 12);
+    const skip = (page - 1) * limit;
+
+    const query = {
+      status: 'published'
+    };
+
+    const total = await News.countDocuments(query);
+
+    const news = await News.find(query)
+      .populate('author', 'name avatar')
+      .select('-content')
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      message: 'Latest news fetched successfully',
+      count: news.length,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      data: news
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+// @desc    Get popular news
+// @route   GET /api/news/popular
+// @access  Public
+
+exports.getPopularNews = async (req, res) => {
+  // console.log("Dfsd")
+
+
+  try {
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit, 10) || 12);
+    const skip = (page - 1) * limit;
+
+
+    const query = {
+      status: 'published'
+    };
+
+    const total = await News.countDocuments(query);
+
+    const news = await News.find(query)
+      .populate('author', 'name avatar')
+      .select('-content')
+      .sort({
+        views: -1,
+        likesCount: -1,
+        publishedAt: -1
+      })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      message: 'Popular news fetched successfully',
+      count: news.length,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+      data: news
+    });
+
   } catch (error) {
     res.status(500).json({
       success: false,
